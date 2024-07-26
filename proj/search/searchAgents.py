@@ -296,14 +296,18 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return (self.startingPosition, (False, False, False, False))
 
     def isGoalState(self, state: Any):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        position, reached = state
+        for c in reached:
+            if c == False:
+                return False
+        return True
 
     def getSuccessors(self, state: Any):
         """
@@ -326,6 +330,19 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            currentPosition, reached = state
+            x,y = currentPosition
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            if not self.walls[nextx][nexty]:
+                newPosition = (nextx, nexty)
+                for i, corner in enumerate(self.corners):
+                    if corner == newPosition:
+                        newReached = list(reached)
+                        newReached[i] = True
+                        reached = tuple(newReached)
+                newState = (newPosition, reached)
+                successors.append((newState, action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -361,7 +378,17 @@ def cornersHeuristic(state: Any, problem: CornersProblem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    h, l = 0, []
+    currentPosition, reached = state
+    for i, r in enumerate(reached):
+        if r == False:
+            corner = corners[i]
+            dist = abs(currentPosition[0] - corner[0]) + abs(currentPosition[1] - corner[1])
+            l.append(dist)
+    if l:
+        h += max(l)
+    return h
+
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
